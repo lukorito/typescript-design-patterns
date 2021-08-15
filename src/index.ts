@@ -16,6 +16,7 @@ interface Database<T extends BaseRecord> {
 
   onBeforeAdd(listener: Listener<BeforeSetEvent<T>>): () => void;
   onAfterAdd(listener: Listener<AfterSetEvent<T>>): () => void;
+  visit(visitor: (item: T) => void);
 }
 
 // factory design pattern
@@ -47,6 +48,9 @@ function createDatabase<T extends BaseRecord>() {
     onAfterAdd(listener: Listener<AfterSetEvent<T>>): () => void {
       return this.afterAddListeners.subscribe(listener);
     }
+    visit(visitor: (item: T) => void): void {
+      Object.values(this.db).forEach(visitor);
+    }
   }
   //   singleton pattern
   // const db = new InMemoryDatabase()
@@ -61,13 +65,6 @@ interface Car {
 
 const CarDB = createDatabase<Car>();
 const carDb = new CarDB();
-
-carDb.set({
-  id: "toyota",
-  YOM: 2001,
-});
-
-console.log(carDb.get("toyota"));
 
 // Observable Pattern
 type Listener<EventType> = (ev: EventType) => void;
@@ -89,3 +86,18 @@ function createObserver<EventType>(): {
     },
   };
 }
+
+// const unsubscribe = carDb.onAfterAdd(({ value }) => console.log(value));
+
+carDb.set({
+  id: "toyota",
+  YOM: 2001,
+});
+
+// unsubscribe();
+
+carDb.set({
+  id: "premio",
+  YOM: 2001,
+});
+carDb.visit((value) => console.log(value));
